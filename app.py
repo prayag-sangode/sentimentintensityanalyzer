@@ -1,14 +1,9 @@
 from flask import Flask, request, jsonify
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import nltk
-import os
-
-# Get dataset path from environment variable
-dataset_path = os.getenv('DATASET_PATH', '/home/prayag/data')
-SentimentIntensityAnalyzer
 
 # Ensure NLTK resources are downloaded
-nltk.data.path.append(dataset_path)
+nltk.download('vader_lexicon')
 
 app = Flask(__name__)
 
@@ -30,6 +25,17 @@ def analyze_sentiment():
         'sentiment': sentiment,
         'score': sentiment_scores['compound']
     })
+
+# Liveness probe endpoint
+@app.route('/healthz', methods=['GET'])
+def healthz():
+    return "OK", 200
+
+# Readiness probe endpoint
+@app.route('/readyz', methods=['GET'])
+def readyz():
+    # You can add more complex readiness checks here if needed
+    return "OK", 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
