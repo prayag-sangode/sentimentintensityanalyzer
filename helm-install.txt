@@ -1,1 +1,0 @@
-helm upgrade --install sentimentintensityanalyzer ../helm-templates/app-template/ --values ./k8s-deploy-values/dev.yaml --namespace helm-test --create-namespace
