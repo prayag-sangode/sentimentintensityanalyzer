@@ -1,0 +1,7 @@
+helm install   cert-manager jetstack/cert-manager   --namespace cert-manager   --create-namespace   --version v1.13.2   --set installCRDs=true --create-namespace
+helm repo ls
+helm ls 
+helm ls -n cert-manager
+kubectl apply -f lets-encrypt-cluster-issuer-prod.yaml
+create ingress for an app to check certificate
+kubectl get ClusterIssuer

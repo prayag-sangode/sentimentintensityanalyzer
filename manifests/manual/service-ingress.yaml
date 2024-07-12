@@ -1,0 +1,31 @@
+---    
+apiVersion: v1
+kind: Service
+metadata:
+  name: multilingual-embedding-svc
+spec:
+  selector:
+    app: multilingual-embedding
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: multilingual-embedding
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: multilingual-embedding.llmhub.t-systems.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: multilingual-embedding-svc
+                port:
+                  number: 8080
+

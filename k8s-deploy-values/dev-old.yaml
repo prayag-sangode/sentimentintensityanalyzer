@@ -1,0 +1,106 @@
+# Deployment
+replicaCount: 1
+
+envVariables:
+  #  - name: MONGO_HOST
+  #    value: 192.168.15.241
+  #  - name: MONGO_DB
+  #    value: genai-db
+  #  - name: MONGO_USERNAME
+  #    value: genai-db-user
+  #  - name: MONGO_PASSWORD
+  #    value: x5Z8jm45pRE9
+  # - name: EXAMPLE_ENV_VAR
+  #   value: "mongodb://genai-db-user:x5Z8jm45pRE9@192.168.15.241/auth-db"
+
+  #  - name: AZURE_OPENAI_API_BASE
+  #    value: https://oa-gen-ai-service.openai.azure.com/
+  #  - name: AZURE_OPENAI_API_KEY
+  #    value: 4a79c5c302b445b29d4d199a989368eb
+  #  - name: OPENAI_API_KEY
+  #    value: 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
+
+  #  - name: REMOTE_SERVER_URL
+  #    value: http://llmhub-backend:8001
+  #  - name: REMOTE_WS_CHAT_URL
+  #    value: ws://llmhub-backend:8001/api/v3/askChatStream
+
+  - name: SERVER_PORT
+    value: 9000
+  - name: MS_AUTH_SERVER
+    value: http://auth-server.dev.svc.cluster.local
+
+image:
+  repository: registry.devops.telekom.de/ai/genai/ai-foundation-services/frontend/llmhub-microservice-platform/micro-frontend-hosts/genai-app 
+  pullPolicy: IfNotPresent
+
+imagePullSecretName: 'genai-app-regcred'
+
+containerPortName: 'genai-app'
+containerPortNumber: 9000
+
+# Service
+service:
+  port: 80
+  targetPort: 9000
+  type: ClusterIP
+
+# Ingress
+ingress:
+  enabled: true
+  name: genai-app
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-body-size: "15m"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300s"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "86400"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "86400"
+    nginx.ingress.kubernetes.io/rewrite-target: "/$1"
+  host: genai-app-dev.llmhub.t-systems.net
+  serviceName: genai-app
+  tlsSecretName: genai-app-tls-secret
+  paths:
+    - path: /($|.*)
+      pathType: ImplementationSpecific
+      serviceName: genai-app
+      port: 80
+    - path: /remotes/genai-mfe/($|.*)
+      pathType: ImplementationSpecific
+      serviceName: genai-mfe
+      port: 80
+    - path: /remotes/auth-mfe/($|.*)
+      pathType: ImplementationSpecific
+      serviceName: auth-mfe
+      port: 80
+tls:
+  enabled: true
+
+# Ingress
+#ingress:
+#  enabled: false
+#  name: genai-app
+#  host: genai-app-dev.llmhub.t-systems.net
+#  serviceName: genai-app
+#  tlsEnabled: false
+#  tlsSecretName: genai-app-tls-secret
+
+
+# PVC
+persistentVolumeClaims:
+  - name: "smartchat-shared-data-pvc"
+    mountPath: "/app/server/uploads"
+
+# Secrets
+#secret:
+#  AZURE_OPENAI_API_KEY: NGE3OWM1YzMwMmI0NDViMjlkNGQxOTlhOTg5MzY4ZWI=
+#  OPENAI_API_KEY: c2stQlZBUTlPMFcyQ0tjNE5zcXF2azRUM0JsYmtGSnlKemF2UUozNTVNbHlSOE50UFM4
+
+# Service account
+serviceAccount:
+  create: false
+
+# hpa
+autoscaling:
+  enabled: false
